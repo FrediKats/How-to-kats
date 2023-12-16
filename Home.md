@@ -1,1 +1,1 @@
-База знаний [@FrediKats](https://github.com/FrediKats)
+Попытка использовать [[Obsidian]] для базы знаний.
