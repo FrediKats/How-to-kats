@@ -7,7 +7,7 @@
 Предполагаемая структура:
 ```
 - Attachments
-- People
+- Inbox
 - Knowledge base
 	- Code
 		- Code Design
@@ -27,9 +27,10 @@
 	- Articles
 	- Books
 	- Videos
-- My content
+- People
+- Personal content
 	- Articles
-	- Workshops
+	- How to
 	- Meetups
 ```
 
