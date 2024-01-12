@@ -145,7 +145,7 @@ dotnet_diagnostic.CS8981.severity = error
 
 Все встроенные правила можно выделить в две категории - Style rules (начинаются на IDE) и Quality rules (начинаются на CA). Основным публичным источником знаний о таких анализаторах является MS Learn ([Code analysis rule categories - .NET | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/categories)), а точнее GitHub репозиторий и из которого страницы на MS Learn генерируются ([docs/docs/fundamentals/code-analysis at main · dotnet/docs (github.com)](https://github.com/dotnet/docs/tree/main/docs/fundamentals/code-analysis)). 
 ### Quality rule analyzers
-Quality rule analyzers нацелены на поиск пробел в коде, работают схожим образом с CSxxxx проверками. Для включения CAxxxx анализаторов необходимо выставить опцию `<EnableNETAnalyzers>true</EnableNETAnalyzers>`.
+Quality rule analyzers нацелены на поиск проблем в коде, работают схожим образом с CSxxxx проверками. Для включения CAxxxx анализаторов необходимо выставить опцию `<EnableNETAnalyzers>true</EnableNETAnalyzers>`.
 
 Рассмотрим структуру CA-правил на примере [CA1021](https://github.com/dotnet/docs/blob/main/docs/fundamentals/code-analysis/quality-rules/ca1021.md):
 - ID - CA1021
