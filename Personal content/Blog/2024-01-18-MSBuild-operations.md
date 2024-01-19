@@ -1,7 +1,4 @@
-~Большинство инструментов, которые Microsoft делают для dotnet можно назвать "It's just work". Но иногда стандартной конфигурации недостаточно и приходиться более подробно разбираться в проблеме. Этот пост как раз о том, как стандартного процесса сборки солюшена оказалось недостаточно и пришлось его пересоздать. И заодно узнать много нового про билд процесс.
-
-- [[2023-12-30-Dotnet-project-system|Dotnet project system]]
-- MSBuild restore operation
+Большинство инструментов, которые Microsoft делают для dotnet можно назвать "It's just work". Но иногда стандартной конфигурации недостаточно и приходиться более подробно разбираться в проблеме. Этот пост как раз о том, как стандартного процесса сборки солюшена оказалось недостаточно и пришлось его пересоздать. И заодно узнать много нового про билд процесс.
 
 ---
 ### MSBuild Structured Log
@@ -143,6 +140,8 @@ error NU1605:  ProjectD -> ProjectC -> Microsoft.Extensions.Logging (>= 8.0.0)
 error NU1605:  ProjectD -> Microsoft.Extensions.Logging (>= 7.0.0)
 ```
 
+Более подробно про логику резолва версий можно узнать с документации - https://learn.microsoft.com/en-us/nuget/concepts/dependency-resolution.
+
 ### dotnet restore: framework dependencies
 Вторая задача рестора - скачать необходимые нюгеты в локальный кеш. Кеш по умолчанию находится в директории `C:\Users\User\.nuget\packages\`. Внутри пакет может храниться сразу в нескольких версиях. Например:
 
@@ -170,3 +169,145 @@ microsoft.extensions.logging/
 Во время рестора фреймворк выбирается исходя из версии проекта, куда нужно нюгет подключить. Если проект версии 8.0.0, то среди доступных версий будет искаться версия для .NET 8, .NET 7 и так далее. Если на будет найдена версия для .NET Core, то будет искаться версия для .NET standard. Если не будет найдена и такая версия, то будет взята версия .NET Framework. Но такой рестор является не безопасным т.к. не всё API из Framework доступно в .NET 8 и рестор будет заканчиваться с предупреждениями. Проверить какая версия была выбрана можно в `project.assets.json`, там будет указан относительный путь к dll: `lib/net8.0/Microsoft.Extensions.Logging.dll`
 
 Более подробно описано тут: https://learn.microsoft.com/en-us/nuget/create-packages/supporting-multiple-target-frameworks.
+
+### Формирование списка зависимостей
+Команда dotnet build состоит из большего количества таргетов и тасок. Дополнительная сложность в анализе состоит в том, что основной таргет `Build` вызывает таску MSBuild, которая в свою очередь запускает параллельный процесс сборки проектов:
+```xml
+<Target Name="Build" Outputs="@(CollectedBuildOutput)">
+  <MSBuild
+	  BuildInParallel="True"
+	  Properties="...."
+	  Projects="@(ProjectReference)">
+      <Output
+	      TaskParameter="TargetOutputs"
+	      ItemName="CollectedBuildOutput" />
+    </MSBuild>
+  </Target>
+```
+
+Далее будет рассмотрен билд одного конкретного проекта - BenchmarkDotNet.IntegrationTests. Пропустим несколько не значимых тарегтов и начнём с ResolvePackageAssets. Основная задача этой таски - сформировать список зависимостей, файлов, которые проект ожидает получить из нюгет пакетов. Для этого вызывается таска ResolvePackageAssets:
+
+```xml
+<ResolvePackageAssets
+  ProjectAssetsFile="$(ProjectAssetsFile)"
+  ProjectAssetsCacheFile="$(ProjectAssetsCacheFile)"
+  ProjectPath="$(MSBuildProjectFullPath)"
+  ProjectLanguage="$(Language)"
+  CompilerApiVersion="$(CompilerApiVersion)"
+  EmitAssetsLogMessages="$(EmitAssetsLogMessages)"
+  TargetFramework="$(TargetFramework)"
+  RuntimeIdentifier="$(RuntimeIdentifier)"
+  PlatformLibraryName="$(MicrosoftNETPlatformLibrary)"
+  RuntimeFrameworks="@(RuntimeFramework)"
+  IsSelfContained="$(SelfContained)"
+  MarkPackageReferencesAsExternallyResolved="$(MarkPackageReferencesAsExternallyResolved)"
+  DisablePackageAssetsCache="$(DisablePackageAssetsCache)"
+  DisableFrameworkAssemblies="$(DisableLockFileFrameworks)"
+  CopyLocalRuntimeTargetAssets="$(CopyLocalRuntimeTargetAssets)"
+  DisableTransitiveProjectReferences="$(DisableTransitiveProjectReferences)"
+  DisableTransitiveFrameworkReferences="$(DisableTransitiveFrameworkReferences)"
+  DotNetAppHostExecutableNameWithoutExtension="$(_DotNetAppHostExecutableNameWithoutExtension)"
+  ShimRuntimeIdentifiers="@(_PackAsToolShimRuntimeIdentifiers)"
+  EnsureRuntimePackageDependencies="$(EnsureRuntimePackageDependencies)"
+  VerifyMatchingImplicitPackageVersion="$(VerifyMatchingImplicitPackageVersion)"
+  ExpectedPlatformPackages="@(ExpectedPlatformPackages)"
+  SatelliteResourceLanguages="$(SatelliteResourceLanguages)"
+  DesignTimeBuild="$(DesignTimeBuild)"
+  ContinueOnError="$(ContinueOnError)"
+  PackageReferences="@(PackageReference)"
+  DefaultImplicitPackages= "$(DefaultImplicitPackages)">
+
+  <!-- NOTE: items names here are inconsistent because they match prior implementation
+	  (that was spread across different tasks/targets) for backwards compatibility.  -->
+  <Output TaskParameter="Analyzers" ItemName="ResolvedAnalyzers" />
+  <Output TaskParameter="ApphostsForShimRuntimeIdentifiers" ItemName="_ApphostsForShimRuntimeIdentifiersResolvePackageAssets" />
+  <Output TaskParameter="ContentFilesToPreprocess" ItemName="_ContentFilesToPreprocess" />
+  <Output TaskParameter="DebugSymbolsFiles" ItemName="_DebugSymbolsFiles" />
+  <Output TaskParameter="ReferenceDocumentationFiles" ItemName="_ReferenceDocumentationFiles" />
+  <Output TaskParameter="FrameworkAssemblies" ItemName="ResolvedFrameworkAssemblies" />
+  <Output TaskParameter="FrameworkReferences" ItemName="TransitiveFrameworkReference" />
+  <Output TaskParameter="NativeLibraries" ItemName="NativeCopyLocalItems" />
+  <Output TaskParameter="ResourceAssemblies" ItemName="ResourceCopyLocalItems" />
+  <Output TaskParameter="RuntimeAssemblies" ItemName="RuntimeCopyLocalItems" />
+  <Output TaskParameter="RuntimeTargets" ItemName="RuntimeTargetsCopyLocalItems" />
+  <Output TaskParameter="CompileTimeAssemblies" ItemName="ResolvedCompileFileDefinitions" />
+  <Output TaskParameter="TransitiveProjectReferences" ItemName="_TransitiveProjectReferences" />
+  <Output TaskParameter="PackageFolders" ItemName="AssetsFilePackageFolder" />
+  <Output TaskParameter="PackageDependencies" ItemName="PackageDependencies" />
+  <Output TaskParameter="PackageDependenciesDesignTime" ItemName="_PackageDependenciesDesignTime" />
+</ResolvePackageAssets>
+```
+
+Вызывая эту таску можно получить:
+- Analyzers, например:
+	- Microsoft.CodeAnalysis.Analyzers.dll
+	- xunit.analyzers.dll
+- DebugSymbolsFiles - пути к сгенерированным pdb символам:
+	- Microsoft.Diagnostics.Runtime.pdb
+	- Mono.Cecil.pdb
+- RuntimeAssemblies -  пути к dll, которые получены из нюгет пакетов:
+	- CommandLine.dll
+	- Microsoft.Extensions.Options.dll
+- RuntimeTargets - platform specific files:
+	- gee.external.capstone\\2.3.0\\runtimes\\linux-arm\\native\\libcapstone.so
+	- gee.external.capstone\\2.3.0\\runtimes\\linux-arm64\\native\\libcapstone.so
+
+Помимо зависимостей от нюгетов, есть также зависимость от других проектов. Таргет GetCopyToOutputDirectoryItems позволяет получить список файлов других проектов, от которых зависит текущий: 
+```xml
+<Target
+  Name="GetCopyToOutputDirectoryItems"
+  Returns="@(AllItemsFullPathWithTargetPath)"
+  KeepDuplicateOutputs=" '$(MSBuildDisableGetCopyToOutputDirectoryItemsOptimization)' == '' "
+  DependsOnTargets="$(GetCopyToOutputDirectoryItemsDependsOn)">
+	<CallTarget
+		Targets="_GetCopyToOutputDirectoryItemsFromTransitiveProjectReferences">
+	  <Output
+		  TaskParameter="TargetOutputs"
+		  ItemName="_TransitiveItemsToCopyToOutputDirectory" />
+	</CallTarget>
+
+	<CallTarget
+		Targets="_GetCopyToOutputDirectoryItemsFromThisProject">
+	  <Output
+		  TaskParameter="TargetOutputs"
+		  ItemName="_ThisProjectItemsToCopyToOutputDirectory" />
+	</CallTarget>
+
+</Target>
+```
+
+Таргет состоит из вызова двух других таргетов: поиск файлов для текущего проекта и поиск файлов для всех зависимостей (в том числе транзитивно). Пример файлов, которые возвращает `GetCopyToOutputDirectoryItems`:
+- .deps.json и .runtime.config.json файлы
+- .dll и .exe файлы с результатами компиляции проекта
+- Добавленные в проект файлы, которые требуют Copy to output directory.
+ 
+### obj и bin директории
+Один из основных таретов в процессе сборки солюшена - это компиляция. В процессе компиляции из исходного кода проекта создаётся dll. Происходит это в рамках таргета CoreCompile, где вызывается таска Csc. Одним из аргументов этой таски пеердаётся OutputAssembly - это путь, куда нужно сохранить скомпилированную dll. По умолчанию компиляция работает с obj директориями. При этом в obj директорию попадают только те файлы, которые были сгенерированы в процессе компиляции. Нет необходимости копировать туда зависимости, они указываются в csc как пути к .nuget/ или obj/ других проектов.
+
+Запустить dll из директории obj невозможно. Чтобы собранное приложение можно было запустить выполняется копирование этой длл и всех зависимостей в директорию bin. Для этого выполняется таргет CopyFilesToOutputDirectory.
+
+Таргет CopyFilesToOutputDirectory декомпозируется на несколько шагов. Один из шагов - это копирование файлов-зависимостей таргетом \_CopyFilesMarkedCopyLocal. Он внутри себя вызывает таску Copy для того, чтобы в директорию `bin\` скопировать содержимое нюгет пакетов, pdb-файлы и подобное:
+```
+Target Name=_CopyFilesMarkedCopyLocal Project=BenchmarkDotNet.IntegrationTests.csproj
+  Task Copy
+    Parameters
+      SourceFiles
+        C:\Users\User\.nuget\packages\argon\0.7.2\lib\net8.0\Argon.dll
+      DestinationFiles
+        bin\Debug\net8.0\Argon.dll
+    Copying file from "...\lib\net8.0\Argon.dll" to "...\bin\Debug\net8.0\BenchmarkDotNet.IntegrationTests.DisabledOptimizations.dll".
+```
+
+
+
+
+> TODO: написать про no-incremental
+
+> TODO: написать про реф длл
+
+> TODO: , common output
+
+---
+
+
+---
