@@ -1,1 +1,8 @@
 .obsidian/workspace.json
+
+.obsidian/plugins/*/main.js
+.obsidian/plugins/*/styles.css
+.obsidian/plugins/*/manifest.json
+
+# env file contains github token
+.obsidian/plugins/obsidian-mkdocs-publisher/env
