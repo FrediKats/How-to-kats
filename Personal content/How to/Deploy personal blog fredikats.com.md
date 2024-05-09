@@ -26,7 +26,7 @@ title: "My new post"
 
 На главной странице сайта отображается лента из постов. Шаблон использует [[Jekyll#excerpt]] для отображения превью постов. Чтобы обозначить, какую часть поста нужно показывать, нужно использовать `<!--more-->` (задаётся в `_config.yml`).
 
-Для добавления изображений на страницы в оригинальном блоге ([yegor256/blog: My blog about computers, written in Jekyll and deployed to GitHub Pages](https://github.com/yegor256/blog)) используется самописный плагин: https://github.com/yegor256/blog/blob/master/_plugins/pictures.rb. Он позволяет в постах не писать \<image\> теги, а использовать [[Jekyll#Liquid Template|Liquid Template]]: `{% picture /images/my-image.png %}`. Шаблон не содержит этого плагина, но его можно скопировать в директорию `_plugins/`и использовать.
+Для добавления изображений на страницы в оригинальном блоге ([yegor256/blog: My blog about computers, written in Jekyll and deployed to GitHub Pages](https://github.com/yegor256/blog)) используется самописный плагин: https://github.com/yegor256/blog/blob/master/_plugins/pictures.rb. Он позволяет в постах не писать \<image\> теги, а использовать [[Jekyll#Liquid Template|Liquid Template]]: `{{%% picture /images/my-image.png%%}}`. Шаблон не содержит этого плагина, но его можно скопировать в директорию `_plugins/`и использовать.
 ## Развёртывание в GitHub Pages
 После того, как сайт получится развернуть локально, можно перейти к развёртыванию в интернете. Один из самых простых способов - это использовать [[Github Actions]] и [[Github Pages]].
 
