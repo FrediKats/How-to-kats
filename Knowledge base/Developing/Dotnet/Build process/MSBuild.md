@@ -34,4 +34,3 @@ microsoft.extensions.logging/
 Во время рестора фреймворк выбирается исходя из версии проекта, куда нужно нюгет подключить. Если проект версии 8.0.0, то среди доступных версий будет искаться версия для .NET 8, .NET 7 и так далее. Если на будет найдена версия для .NET Core, то будет искаться версия для .NET standard. Если не будет найдена и такая версия, то будет взята версия .NET Framework. Но такой рестор является не безопасным т.к. не всё API из Framework доступно в .NET 8 и рестор будет заканчиваться с предупреждениями. Проверить какая версия была выбрана можно в `project.assets.json`, там будет указан относительный путь к dll: `lib/net8.0/Microsoft.Extensions.Logging.dll`
 
 Более подробно описано тут: https://learn.microsoft.com/en-us/nuget/create-packages/supporting-multiple-target-frameworks.
-## Solution build
