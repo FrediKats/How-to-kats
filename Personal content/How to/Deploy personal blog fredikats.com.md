@@ -1,3 +1,7 @@
+---
+title: Deploy personal blog fredikats.com
+---
+
 FrediKats.com - это персональный блог, который собирается из [[Markdown]] файлов. За основу взят шаблон [yegor256/bloghacks: Jekyll demo blog for "256 Bloghacks" book (github.com)](https://github.com/yegor256/bloghacks) от [[Yegor Bugayenko|Егора Бугаенко]].
 
 ## Алгоритм локального развёртывания сайта

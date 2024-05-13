@@ -1,3 +1,7 @@
+---
+title: .NET Project
+---
+
 Проект в [[Dotnet project system]] - это `.csproj` файл, который описывает единицу сборки.
 
 ## Project type ID

@@ -194,7 +194,7 @@ microsoft.extensions.logging/
   </Target>
 ```
 
-Далее будет рассмотрен билд одного конкретного проекта - BenchmarkDotNet.IntegrationTests. Пропустим несколько не значимых тарегтов и начнём с ResolvePackageAssets. Основная задача этого таргета - сформировать список зависимостей, файлов, которые проект ожидает получить из нюгет пакетов. Для этого вызывается таска [[MSBuild tasks ResolvePackageAssets|ResolvePackageAssets]]:
+Далее будет рассмотрен билд одного конкретного проекта - BenchmarkDotNet.IntegrationTests. Пропустим несколько не значимых тарегтов и начнём с ResolvePackageAssets. Основная задача этого таргета - сформировать список зависимостей, файлов, которые проект ожидает получить из нюгет пакетов. Для этого вызывается таска [[MSBuild task ResolvePackageAssets|ResolvePackageAssets]]:
 
 ```xml
 <ResolvePackageAssets

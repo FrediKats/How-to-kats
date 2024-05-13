@@ -1,3 +1,7 @@
+---
+title: MSBuild target
+---
+
 [[MSBuild]] предоставляет возможность группировать элементы в таргеты, для описания более сложных сценариев. Пример таргета, который вызывается во время `dotnet restore`:
 ```xml
 <Target Name="ValidateSolutionConfiguration">

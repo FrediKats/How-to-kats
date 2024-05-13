@@ -1,3 +1,7 @@
+---
+title: ResolvePackageAssets MSBuild task
+---
+
 ResolvePackageAssets - это [[MSBuild task]], которая формирует список зависимостей проекта от [[Nuget]] файлов.
 
 Пример вызова этой таски в .NET 8:

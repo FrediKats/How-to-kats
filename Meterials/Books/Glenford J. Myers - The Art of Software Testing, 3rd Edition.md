@@ -1,3 +1,7 @@
+---
+title: The Art of Software Testing, 3rd Edition
+---
+
 Ссылка: https://learning.oreilly.com/library/view/the-art-of/9781118133156/
 
 ---

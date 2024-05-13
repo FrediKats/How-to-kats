@@ -1,3 +1,7 @@
+---
+title: Roslyn Analyzers - Disposing
+---
+
 Существует несколько стандартных [[Roslyn analyzers|Roslyn анализаторов]], которые находят проблемы с использованием [[Instance disposing|IDisposable]]:
 - CA2000
 - CA2213

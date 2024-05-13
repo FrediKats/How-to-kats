@@ -1,4 +1,7 @@
-
+---
+title: Visual Studio Code
+---
+Visual Studio Code - это [[IDE]] от Microsoft.
 ## Adding to context menu
 Стандартная установка VS Code добавляет в контекстное меню команду открытия директории в VS Code. При использовании [[winget]] VS Code устанавливается без этого. Чтобы добавить VS Code в контекстное меню после установки можно воспользоваться командой:
 

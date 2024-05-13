@@ -1,3 +1,7 @@
+---
+title: NuGet
+---
+
 ## NuGet cache directory
 Путь к директории, где лежит NuGet можно получить выполнив команду `dotnet nuget locals global-packages --list`.
 

@@ -1,3 +1,7 @@
+---
+title: Obsidian
+---
+
 Obsidian (https://obsidian.md/) - это приложение для создания заметок и/или персональной базы знаний.
 
 ## Obsidian vault
