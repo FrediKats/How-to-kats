@@ -9,3 +9,8 @@
 
 ## obj directory
 ### project.assets.json
+
+## Artifacts output
+Начиная с dotnet 8, MSBuild поддерживает свойство `UseArtifactsOutput`, которое влияет на то, куда сохраняются файлы во время сборки. Обычно директории bin и obj складываются внутри директорий проектов, но в выставленным `UseArtifactsOutput` создаётся директория `artifact` в корне солюшена и внутри неё под каждый проект заводится директория, где будут хранится bin и obj.
+
+Более подробно почитать можно в документации: https://learn.microsoft.com/en-us/dotnet/core/sdk/artifacts-output.
